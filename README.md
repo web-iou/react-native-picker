@@ -1,4 +1,7 @@
 # react-native-picker
+## 
+**在原来的基础上上线了遮罩层及修复了组件在没有rerender的情况 点开选择器白屏的问题**
+
 
 [![npm version](https://img.shields.io/npm/v/react-native-picker.svg?style=flat-square)](https://www.npmjs.com/package/react-native-picker) <a href="https://david-dm.org/beefe/react-native-picker"><img src="https://david-dm.org/beefe/react-native-picker.svg?style=flat-square" alt="dependency status"></a>   
 

@@ -1,7 +1,7 @@
 {
-  "name": "react-native-picker",
-  "version": "4.3.7",
-  "description": "A Native Picker with high performance.",
+  "name": "@cx19940809/react-native-picker",
+  "version": "4.3.8",
+  "description": "A Native Picker with high performance. (Fork with fixes)",
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
@@ -9,9 +9,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:beefe/react-native-picker.git"
+    "url": "https://github.com/web-iou/react-native-picker"
   },
-  "author": "zooble",
+  "author": "web-iou",
   "license": "MIT",
-  "homepage": "https://github.com/beefe/react-native-picker"
+  "homepage": "https://github.com/web-iou/react-native-picker",
+  "keywords": [
+    "react-native",
+    "picker",
+    "ios",
+    "android"
+  ]
 }
