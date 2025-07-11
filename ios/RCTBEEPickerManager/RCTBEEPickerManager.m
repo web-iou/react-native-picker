@@ -74,11 +74,7 @@ RCT_EXPORT_METHOD(_init:(NSDictionary *)indic){
 
     }];
 
-    if ([[UIDevice currentDevice].systemVersion doubleValue] >= 9.0 ) {
-        self.height=250;
-    }else{
-        self.height=220;
-    }
+    self.height=300;
     
     self.pick=[[BzwPicker alloc]initWithFrame:CGRectMake(0, SCREEN_HEIGHT, SCREEN_WIDTH, self.height) dic:dataDic leftStr:pickerCancelBtnText centerStr:pickerTitleText rightStr:pickerConfirmBtnText topbgColor:pickerToolBarBg bottombgColor:pickerBg leftbtnbgColor:pickerCancelBtnColor rightbtnbgColor:pickerConfirmBtnColor centerbtnColor:pickerTitleColor selectValueArry:selectArry weightArry:weightArry pickerToolBarFontSize:pickerToolBarFontSize pickerFontSize:pickerFontSize pickerFontColor:pickerFontColor  pickerRowHeight: pickerRowHeight pickerFontFamily:pickerFontFamily];
     
@@ -99,28 +95,15 @@ RCT_EXPORT_METHOD(_init:(NSDictionary *)indic){
 
 RCT_EXPORT_METHOD(show){
     if (self.pick) {
-
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [UIView animateWithDuration:.3 animations:^{
-
-                [_pick setFrame:CGRectMake(0, SCREEN_HEIGHT-self.height, SCREEN_WIDTH, self.height)];
-
-            }];
-        });
+        [self.pick showPickerWithAnimation];
     }return;
 }
 
 RCT_EXPORT_METHOD(hide){
 
     if (self.pick) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [UIView animateWithDuration:.3 animations:^{
-                [_pick setFrame:CGRectMake(0, SCREEN_HEIGHT, SCREEN_WIDTH, self.height)];
-            }];
-        });
+        [self.pick hidePickerWithAnimation];
     }
-
-    self.pick.hidden=YES;
 
     return;
 }
@@ -139,14 +122,14 @@ RCT_EXPORT_METHOD(isPickerShow:(RCTResponseSenderBlock)getBack){
 
     if (self.pick) {
 
-        CGFloat pickY=_pick.frame.origin.y;
+        CGFloat pickY=_pick.pickerContainer.frame.origin.y;
 
         if (pickY==SCREEN_HEIGHT) {
 
-            getBack(@[@YES]);
+            getBack(@[@NO]);
         }else
         {
-            getBack(@[@NO]);
+            getBack(@[@YES]);
         }
     }else{
         getBack(@[@"picker不存在"]);

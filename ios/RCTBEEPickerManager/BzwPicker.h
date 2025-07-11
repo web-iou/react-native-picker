@@ -18,6 +18,8 @@ typedef void(^backBolock)(NSDictionary * );
 
 @property (strong,nonatomic)UIPickerView *pick;
 
+@property(nonatomic,strong)UIView *modalBackgroundView;//modal背景遮罩层
+
 @property(nonatomic,copy)backBolock bolock;
 
 @property (strong, nonatomic) NSDictionary *pickerDic;//一开始进来的字典
@@ -77,10 +79,16 @@ typedef void(^backBolock)(NSDictionary * );
 
 @property(assign,nonatomic)NSInteger seleNum;//用来做索引下标用
 
+@property(nonatomic,strong)UIView *pickerContainer;//picker容器视图
 
 
 -(instancetype)initWithFrame:(CGRect)frame dic:(NSDictionary *)dic leftStr:(NSString *)leftStr centerStr:(NSString *)centerStr rightStr:(NSString *)rightStr topbgColor:(NSArray *)topbgColor bottombgColor:(NSArray *)bottombgColor leftbtnbgColor:(NSArray *)leftbtnbgColor rightbtnbgColor:(NSArray *)rightbtnbgColor centerbtnColor:(NSArray *)centerbtnColor selectValueArry:(NSArray *)selectValueArry  weightArry:(NSArray *)weightArry
        pickerToolBarFontSize:(NSString *)pickerToolBarFontSize  pickerFontSize:(NSString *)pickerFontSize  pickerFontColor:(NSArray *)pickerFontColor  pickerRowHeight:(NSString *)pickerRowHeight  pickerFontFamily:(NSString *)pickerFontFamily;
 
 -(void)selectRow;
+
+// modal动画方法
+-(void)showPickerWithAnimation;
+-(void)hidePickerWithAnimation;
+
 @end

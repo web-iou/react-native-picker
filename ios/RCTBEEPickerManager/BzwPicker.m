@@ -15,9 +15,10 @@
        pickerToolBarFontSize:(NSString *)pickerToolBarFontSize  pickerFontSize:(NSString *)pickerFontSize  pickerFontColor:(NSArray *)pickerFontColor pickerRowHeight:(NSString *)pickerRowHeight pickerFontFamily:(NSString *)pickerFontFamily
 
 {
-    self = [super initWithFrame:frame];
+    self = [super initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)];
     if (self)
     {
+        self.userInteractionEnabled=NO;
         self.backArry=[[NSMutableArray alloc]init];
         self.provinceArray=[[NSMutableArray alloc]init];
         self.cityArray=[[NSMutableArray alloc]init];
@@ -32,20 +33,49 @@
         self.pickerFontFamily=pickerFontFamily;
         self.pickerFontColor=pickerFontColor;
         self.pickerRowHeight=pickerRowHeight;
+        
+        // 创建modal背景遮罩
+        [self createModalBackground];
+        
         [self getStyle];
         [self getnumStyle];
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self makeuiWith:topbgColor With:bottombgColor With:leftbtnbgColor With:rightbtnbgColor With:centerbtnColor];
+            [self makeuiWith:topbgColor With:bottombgColor With:leftbtnbgColor With:rightbtnbgColor With:centerbtnColor withFrame:frame];
             [self selectRow];
         });
     }
     return self;
 }
--(void)makeuiWith:(NSArray *)topbgColor With:(NSArray *)bottombgColor With:(NSArray *)leftbtnbgColor With:(NSArray *)rightbtnbgColor With:(NSArray *)centerbtnColor
+// 创建modal背景遮罩
+-(void)createModalBackground
 {
-    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0,0, self.frame.size.width, 40)];
+    self.modalBackgroundView = [[UIView alloc] initWithFrame:self.bounds];
+    self.modalBackgroundView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.5];
+    self.modalBackgroundView.alpha = 0.0; // 初始状态为透明
+    [self addSubview:self.modalBackgroundView];
+    
+    // 添加点击手势，点击背景关闭picker
+    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(backgroundTapped)];
+    [self.modalBackgroundView addGestureRecognizer:tapGesture];
+}
+
+// 点击背景关闭picker
+-(void)backgroundTapped
+{
+    [self cancleAction];
+}
+
+-(void)makeuiWith:(NSArray *)topbgColor With:(NSArray *)bottombgColor With:(NSArray *)leftbtnbgColor With:(NSArray *)rightbtnbgColor With:(NSArray *)centerbtnColor withFrame:(CGRect)pickerFrame
+{
+    // 创建picker容器
+    self.pickerContainer = [[UIView alloc] initWithFrame:pickerFrame];
+    self.pickerContainer.backgroundColor = [UIColor clearColor];
+    // 确保picker容器在背景遮罩之上
+    [self insertSubview:self.pickerContainer aboveSubview:self.modalBackgroundView];
+    
+    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0,0, pickerFrame.size.width, 40)];
     view.backgroundColor = [self colorWith:topbgColor];
-    [self addSubview:view];
+    [self.pickerContainer addSubview:view];
     
     self.leftBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     self.leftBtn.frame = CGRectMake(0, 0, 90, 40);
@@ -67,18 +97,18 @@
     [self.rightBtn addTarget:self action:@selector(cfirmAction) forControlEvents:UIControlEventTouchUpInside];  
     [view addSubview:self.rightBtn];
     
-    UILabel *cenLabel=[[UILabel alloc]initWithFrame:CGRectMake(90, 5, SCREEN_WIDTH-180, 30)];
+    UILabel *cenLabel=[[UILabel alloc]initWithFrame:CGRectMake(90, 5, pickerFrame.size.width-180, 30)];
     cenLabel.text=self.centStr;
     cenLabel.textAlignment=NSTextAlignmentCenter;
     cenLabel.font = [UIFont fontWithName:_pickerFontFamily size:[_pickerToolBarFontSize integerValue]];
     [cenLabel setTextColor:[self colorWith:centerbtnColor]];
     [view addSubview:cenLabel];
 
-    self.pick = [[UIPickerView alloc] initWithFrame:CGRectMake(0, 40, self.frame.size.width, self.frame.size.height - 40)];
+    self.pick = [[UIPickerView alloc] initWithFrame:CGRectMake(0, 40, pickerFrame.size.width, pickerFrame.size.height - 40)];
     self.pick.delegate = self;
     self.pick.dataSource = self;
     self.pick.showsSelectionIndicator=YES;
-    [self addSubview:self.pick];
+    [self.pickerContainer addSubview:self.pick];
     
     self.pick.backgroundColor=[self colorWith:bottombgColor];
 }
@@ -599,16 +629,7 @@
         self.bolock(dic);
     }
     
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [UIView animateWithDuration:.2f animations:^{
-            
-            [self setFrame:CGRectMake(0, SCREEN_HEIGHT, SCREEN_WIDTH, 250)];
-            
-        }];
-    });
-
-    self.pick.hidden=YES;
+    [self hidePickerWithAnimation];
 }
 //按了确定按钮
 -(void)cfirmAction
@@ -640,12 +661,7 @@
         self.bolock(dic);
     }
     
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [UIView animateWithDuration:.2f animations:^{
-            
-            [self setFrame:CGRectMake(0, SCREEN_HEIGHT, SCREEN_WIDTH, 250)];
-        }];
-    });
+    [self hidePickerWithAnimation];
 }
 -(void)selectRow
 {
@@ -967,4 +983,43 @@
     }
     return NO;
 }
+
+// 显示picker的动画
+-(void)showPickerWithAnimation
+{
+    self.pick.hidden=NO;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        // 显示前重新启用整个BzwPicker的用户交互和显示modalBackgroundView
+        self.userInteractionEnabled = YES;
+        self.modalBackgroundView.hidden = NO;
+        
+        [UIView animateWithDuration:0.3 animations:^{
+            self.modalBackgroundView.alpha = 1.0;
+            CGRect frame = self.pickerContainer.frame;
+            frame.origin.y = SCREEN_HEIGHT - frame.size.height;
+            self.pickerContainer.frame = frame;
+        }];
+    });
+}
+
+// 隐藏picker的动画
+-(void)hidePickerWithAnimation
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [UIView animateWithDuration:0.3 animations:^{
+            self.modalBackgroundView.alpha = 0.0;
+            CGRect frame = self.pickerContainer.frame;
+            frame.origin.y = SCREEN_HEIGHT;
+            self.pickerContainer.frame = frame;
+        } completion:^(BOOL finished) {
+            // 动画完成后，禁用整个BzwPicker的用户交互，防止影响RN视图的事件触发
+            self.userInteractionEnabled = NO;
+            // 同时隐藏modalBackgroundView，确保不会阻挡用户操作
+            self.modalBackgroundView.hidden = YES;
+        }];
+    });
+    
+    self.pick.hidden = YES;
+}
+
 @end
