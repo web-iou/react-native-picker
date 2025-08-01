@@ -1,6 +1,6 @@
 {
-  "name": "@cx19940809/react-native-picker",
-  "version": "4.3.8",
+  "name": "@see_you/react-native-picker",
+  "version": "1.0.0",
   "description": "A Native Picker with high performance. (Fork with fixes)",
   "main": "index.js",
   "types": "index.d.ts",
