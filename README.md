@@ -7,7 +7,7 @@ A Native Picker with high performance for React Native.
 
 ## Preview
 
-<video src="./doc/android.webm" controls width="100%" style="" height=700></video>
+![Android Demo](./doc/ezgif-853dbf1339b3a6.gif)
 
 ## 🚀 Improvements Over Original
 
