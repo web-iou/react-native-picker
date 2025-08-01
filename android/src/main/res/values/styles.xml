@@ -5,7 +5,8 @@
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowContentOverlay">@null</item>
-        <item name="android:windowAnimationStyle">@style/PickerAnim</item>
+        <!-- 移除窗口动画，只使用自定义透明度动画 -->
+        <!-- <item name="android:windowAnimationStyle">@style/PickerAnim</item> -->
         <item name="android:background">@android:color/transparent</item>
     </style>
     <style name="PickerAnim">

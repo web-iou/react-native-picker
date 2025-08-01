@@ -53,6 +53,15 @@ public class PickerViewAlone extends LinearLayout {
 
     public void setPickerData(ReadableArray array, double[] weights) {
         curSelectedList = new ArrayList<>();
+        // 检查array是否为空，避免IndexOutOfBoundsException
+        if (array == null || array.size() == 0) {
+            // 空数据时，创建一个空的ReturnData
+            ReturnData emptyData = new ReturnData();
+            emptyData.setItem("");
+            emptyData.setIndex(0);
+            curSelectedList.add(emptyData);
+            return;
+        }
         switch (array.getType(0).name()) {
             case "Array":
                 setMultipleData(array, weights);
@@ -209,6 +218,17 @@ public class PickerViewAlone extends LinearLayout {
             if (view instanceof LoopView) {
                 LoopView loopView = (LoopView) view;
                 loopView.setTextSize(size);
+            }
+        }
+    }
+
+    public void setRowHeight(float height){
+        int viewCount = pickerViewAloneLayout.getChildCount();
+        for (int i = 0; i < viewCount; i++) {
+            View view = pickerViewAloneLayout.getChildAt(i);
+            if (view instanceof LoopView) {
+                LoopView loopView = (LoopView) view;
+                loopView.setRowHeight(height);
             }
         }
     }

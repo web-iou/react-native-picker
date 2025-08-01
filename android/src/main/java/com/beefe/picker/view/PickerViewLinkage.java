@@ -170,6 +170,11 @@ public class PickerViewLinkage extends LinearLayout {
         }
 
         ReadableArray childArray = data.get(0).getArray(oneList.get(0));
+        // 检查childArray是否为空，避免IndexOutOfBoundsException
+        if (childArray == null || childArray.size() == 0) {
+            setRow(2); // 默认设置为2行
+            return;
+        }
         String name = childArray.getType(0).name();
         if (name.equals("Map")) {
             setRow(3);
@@ -600,6 +605,20 @@ public class PickerViewLinkage extends LinearLayout {
                 loopViewOne.setTextSize(size);
                 loopViewTwo.setTextSize(size);
                 loopViewThree.setTextSize(size);
+                break;
+        }
+    }
+
+    public void setRowHeight(float height){
+        switch (curRow) {
+            case 2:
+                loopViewOne.setRowHeight(height);
+                loopViewTwo.setRowHeight(height);
+                break;
+            case 3:
+                loopViewOne.setRowHeight(height);
+                loopViewTwo.setRowHeight(height);
+                loopViewThree.setRowHeight(height);
                 break;
         }
     }

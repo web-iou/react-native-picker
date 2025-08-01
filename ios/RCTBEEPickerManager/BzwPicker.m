@@ -12,7 +12,7 @@
 @implementation BzwPicker
 
 -(instancetype)initWithFrame:(CGRect)frame dic:(NSDictionary *)dic leftStr:(NSString *)leftStr centerStr:(NSString *)centerStr rightStr:(NSString *)rightStr topbgColor:(NSArray *)topbgColor bottombgColor:(NSArray *)bottombgColor leftbtnbgColor:(NSArray *)leftbtnbgColor rightbtnbgColor:(NSArray *)rightbtnbgColor centerbtnColor:(NSArray *)centerbtnColor selectValueArry:(NSArray *)selectValueArry  weightArry:(NSArray *)weightArry
-       pickerToolBarFontSize:(NSString *)pickerToolBarFontSize  pickerFontSize:(NSString *)pickerFontSize  pickerFontColor:(NSArray *)pickerFontColor pickerRowHeight:(NSString *)pickerRowHeight pickerFontFamily:(NSString *)pickerFontFamily
+       pickerToolBarFontSize:(NSString *)pickerToolBarFontSize  pickerFontSize:(NSString *)pickerFontSize  pickerFontColor:(NSArray *)pickerFontColor pickerRowHeight:(NSString *)pickerRowHeight pickerFontFamily:(NSString *)pickerFontFamily emptyText:(NSString *)emptyText
 
 {
     self = [super initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)];
@@ -33,16 +33,32 @@
         self.pickerFontFamily=pickerFontFamily;
         self.pickerFontColor=pickerFontColor;
         self.pickerRowHeight=pickerRowHeight;
+        self.emptyText = emptyText ?: @"NO DATA"; // 默认值为"NO DATA"
         
         // 创建modal背景遮罩
         [self createModalBackground];
         
         [self getStyle];
-        [self getnumStyle];
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self makeuiWith:topbgColor With:bottombgColor With:leftbtnbgColor With:rightbtnbgColor With:centerbtnColor withFrame:frame];
-            [self selectRow];
-        });
+        
+        // 检查数据是否为空
+        if ([self isPickerDataEmpty]) {
+            // 如果数据为空，显示空状态
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self createEmptyStateViewWithFrame:frame
+                                        topbgColor:topbgColor
+                                      bottombgColor:bottombgColor
+                                      leftbtnbgColor:leftbtnbgColor
+                                     rightbtnbgColor:rightbtnbgColor
+                                      centerbtnColor:centerbtnColor];
+            });
+        } else {
+            // 如果数据不为空，正常显示picker
+            [self getnumStyle];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self makeuiWith:topbgColor With:bottombgColor With:leftbtnbgColor With:rightbtnbgColor With:centerbtnColor withFrame:frame];
+                [self selectRow];
+            });
+        }
     }
     return self;
 }
@@ -608,25 +624,140 @@
     }
 }
 
+// 检查picker数据是否为空
+-(BOOL)isPickerDataEmpty
+{
+    self.dataDry = [self.pickerDic objectForKey:@"pickerData"];
+    
+    if (!self.dataDry || self.dataDry.count == 0) {
+        return YES;
+    }
+    
+    // 检查数据内容是否为空
+    for (id item in self.dataDry) {
+        if ([item isKindOfClass:[NSArray class]]) {
+            NSArray *array = (NSArray *)item;
+            if (array.count > 0) {
+                return NO;
+            }
+        } else if ([item isKindOfClass:[NSDictionary class]]) {
+            NSDictionary *dict = (NSDictionary *)item;
+            if (dict.count > 0) {
+                return NO;
+            }
+        } else {
+            // 如果是其他类型的数据，认为不为空
+            return NO;
+        }
+    }
+    
+    return YES;
+}
+
+// 创建空状态视图
+-(void)createEmptyStateViewWithFrame:(CGRect)pickerFrame
+                          topbgColor:(NSArray *)topbgColor
+                        bottombgColor:(NSArray *)bottombgColor
+                        leftbtnbgColor:(NSArray *)leftbtnbgColor
+                       rightbtnbgColor:(NSArray *)rightbtnbgColor
+                        centerbtnColor:(NSArray *)centerbtnColor
+{
+    // 创建picker容器
+    self.pickerContainer = [[UIView alloc] initWithFrame:pickerFrame];
+    self.pickerContainer.backgroundColor = [UIColor clearColor];
+    // 确保picker容器在背景遮罩之上
+    [self insertSubview:self.pickerContainer aboveSubview:self.modalBackgroundView];
+    
+    // 创建顶部工具栏
+    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, pickerFrame.size.width, 40)];
+    view.backgroundColor = [self colorWith:topbgColor];
+    [self.pickerContainer addSubview:view];
+    
+    // 取消按钮
+    self.leftBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.leftBtn.frame = CGRectMake(0, 0, 90, 40);
+    self.leftBtn.font = [UIFont fontWithName:_pickerFontFamily size:[_pickerToolBarFontSize integerValue]];
+    self.leftBtn.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
+    [self.leftBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 10.0, 0, 0)];
+    [self.leftBtn setTitle:self.leftStr forState:UIControlStateNormal];
+    [self.leftBtn setTitleColor:[self colorWith:leftbtnbgColor] forState:UIControlStateNormal];
+    [self.leftBtn addTarget:self action:@selector(cancleAction) forControlEvents:UIControlEventTouchUpInside];
+    [view addSubview:self.leftBtn];
+    
+    // 确认按钮
+    self.rightBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.rightBtn.frame = CGRectMake(view.frame.size.width - 90, 0, 90, 40);
+    self.rightBtn.font = [UIFont fontWithName:_pickerFontFamily size:[_pickerToolBarFontSize integerValue]];
+    self.rightBtn.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
+    [self.rightBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 10.0)];
+    [self.rightBtn setTitle:self.rightStr forState:UIControlStateNormal];
+    [self.rightBtn setTitleColor:[self colorWith:rightbtnbgColor] forState:UIControlStateNormal];
+    [self.rightBtn addTarget:self action:@selector(cfirmAction) forControlEvents:UIControlEventTouchUpInside];
+    [view addSubview:self.rightBtn];
+    
+    // 标题标签
+    UILabel *cenLabel = [[UILabel alloc] initWithFrame:CGRectMake(90, 5, pickerFrame.size.width - 180, 30)];
+    cenLabel.text = self.centStr;
+    cenLabel.textAlignment = NSTextAlignmentCenter;
+    cenLabel.font = [UIFont fontWithName:_pickerFontFamily size:[_pickerToolBarFontSize integerValue]];
+    [cenLabel setTextColor:[self colorWith:centerbtnColor]];
+    [view addSubview:cenLabel];
+    
+    // 创建空状态内容区域
+    UIView *emptyContentView = [[UIView alloc] initWithFrame:CGRectMake(0, 40, pickerFrame.size.width, pickerFrame.size.height - 40)];
+    emptyContentView.backgroundColor = [self colorWith:bottombgColor];
+    [self.pickerContainer addSubview:emptyContentView];
+    
+    // 创建居中的空状态文字标签
+    UILabel *emptyLabel = [[UILabel alloc] init];
+    emptyLabel.text = self.emptyText;
+    emptyLabel.textAlignment = NSTextAlignmentCenter;
+    emptyLabel.font = [UIFont fontWithName:_pickerFontFamily size:[_pickerFontSize integerValue]];
+    emptyLabel.textColor = [self colorWith:_pickerFontColor];
+    emptyLabel.numberOfLines = 0;
+    
+    // 设置约束，使标签在容器中垂直水平居中
+    emptyLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    [emptyContentView addSubview:emptyLabel];
+    
+    // 添加约束
+    [NSLayoutConstraint activateConstraints:@[
+        [emptyLabel.centerXAnchor constraintEqualToAnchor:emptyContentView.centerXAnchor],
+        [emptyLabel.centerYAnchor constraintEqualToAnchor:emptyContentView.centerYAnchor],
+        [emptyLabel.leadingAnchor constraintGreaterThanOrEqualToAnchor:emptyContentView.leadingAnchor constant:20],
+        [emptyLabel.trailingAnchor constraintLessThanOrEqualToAnchor:emptyContentView.trailingAnchor constant:-20]
+    ]];
+}
+
 //按了取消按钮
 -(void)cancleAction
 {
     NSMutableDictionary *dic=[[NSMutableDictionary alloc]init];
     
-    if (self.backArry.count>0) {
-        [dic setValue:self.backArry forKey:@"selectedValue"];
+    // 检查是否为空状态
+    if ([self isPickerDataEmpty]) {
+        // 空状态下的处理
+        [dic setValue:@[] forKey:@"selectedValue"];
         [dic setValue:@"cancel" forKey:@"type"];
-        
-        [dic setValue:[self getselectIndexArry] forKey:@"selectedIndex"];
-        
+        [dic setValue:@[] forKey:@"selectedIndex"];
         self.bolock(dic);
-    }else{
-        [self getNOselectinfo];
-        
-        [dic setValue:self.backArry forKey:@"selectedValue"];
-        [dic setValue:@"cancel" forKey:@"type"];
-        [dic setValue:[self getselectIndexArry] forKey:@"selectedIndex"];
-        self.bolock(dic);
+    } else {
+        // 正常状态下的处理
+        if (self.backArry.count>0) {
+            [dic setValue:self.backArry forKey:@"selectedValue"];
+            [dic setValue:@"cancel" forKey:@"type"];
+            
+            [dic setValue:[self getselectIndexArry] forKey:@"selectedIndex"];
+            
+            self.bolock(dic);
+        }else{
+            [self getNOselectinfo];
+            
+            [dic setValue:self.backArry forKey:@"selectedValue"];
+            [dic setValue:@"cancel" forKey:@"type"];
+            [dic setValue:[self getselectIndexArry] forKey:@"selectedIndex"];
+            self.bolock(dic);
+        }
     }
     
     [self hidePickerWithAnimation];
@@ -635,30 +766,40 @@
 -(void)cfirmAction
 {
     //判断当前是否在滚动选择 如果是 则禁用确定按钮
-    if ([self anySubViewScrolling:self.pick]) {
+    if (self.pick && [self anySubViewScrolling:self.pick]) {
         return ;
     }
     
     NSMutableDictionary *dic=[[NSMutableDictionary alloc]init];
     
-    if (self.backArry.count>0) {
-        
-        [dic setValue:self.backArry forKey:@"selectedValue"];
+    // 检查是否为空状态
+    if ([self isPickerDataEmpty]) {
+        // 空状态下的处理
+        [dic setValue:@[] forKey:@"selectedValue"];
         [dic setValue:@"confirm" forKey:@"type"];
-        NSMutableArray *arry=[[NSMutableArray alloc]init];
-        [dic setValue:[self getselectIndexArry] forKey:@"selectedIndex"];
-//        [dic setValue:arry forKey:@"selectedIndex"];
-        
+        [dic setValue:@[] forKey:@"selectedIndex"];
         self.bolock(dic);
-        
-    }else{
-        [self getNOselectinfo];
-        [dic setValue:self.backArry forKey:@"selectedValue"];
-        [dic setValue:@"confirm" forKey:@"type"];
-        
-        [dic setValue:[self getselectIndexArry] forKey:@"selectedIndex"];
-        
-        self.bolock(dic);
+    } else {
+        // 正常状态下的处理
+        if (self.backArry.count>0) {
+            
+            [dic setValue:self.backArry forKey:@"selectedValue"];
+            [dic setValue:@"confirm" forKey:@"type"];
+            NSMutableArray *arry=[[NSMutableArray alloc]init];
+            [dic setValue:[self getselectIndexArry] forKey:@"selectedIndex"];
+    //        [dic setValue:arry forKey:@"selectedIndex"];
+            
+            self.bolock(dic);
+            
+        }else{
+            [self getNOselectinfo];
+            [dic setValue:self.backArry forKey:@"selectedValue"];
+            [dic setValue:@"confirm" forKey:@"type"];
+            
+            [dic setValue:[self getselectIndexArry] forKey:@"selectedIndex"];
+            
+            self.bolock(dic);
+        }
     }
     
     [self hidePickerWithAnimation];

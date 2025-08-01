@@ -223,6 +223,28 @@ public class LoopView extends View {
         }
     }
 
+    public final void setRowHeight(float height) {
+        if (height > 0.0F) {
+            // 根据指定的行高计算lineSpacingMultiplier
+            // 行高应该包含文字高度加上间距
+            float density = context.getResources().getDisplayMetrics().density;
+            float targetHeight = height * density;
+            
+            // 计算当前文字高度
+            if (textSize > 0) {
+                lineSpacingMultiplier = targetHeight / textSize;
+                // 确保最小倍数，保证文字可读性
+                if (lineSpacingMultiplier < 1.2F) {
+                    lineSpacingMultiplier = 1.2F;
+                }
+            } else {
+                lineSpacingMultiplier = targetHeight / (16 * density); // 默认16dp文字大小
+            }
+            remeasure();
+            invalidate();
+        }
+    }
+
     public final void setTextEllipsisLen(int len){
         textEllipsisLen = len;
     }
