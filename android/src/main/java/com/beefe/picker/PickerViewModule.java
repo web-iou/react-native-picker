@@ -1067,9 +1067,6 @@ public class PickerViewModule extends ReactContextBaseJavaModule implements Life
     @Override
     public void onHostPause() {
         hide();
-        dialog = null;
-        modalContainer = null;
-        pickerContentView = null;
     }
 
     @Override
