@@ -88,44 +88,85 @@
     self.pickerContainer.backgroundColor = [UIColor clearColor];
     // 确保picker容器在背景遮罩之上
     [self insertSubview:self.pickerContainer aboveSubview:self.modalBackgroundView];
-    
     UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0,0, pickerFrame.size.width, 40)];
     view.backgroundColor = [self colorWith:topbgColor];
     [self.pickerContainer addSubview:view];
     
     self.leftBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.leftBtn.frame = CGRectMake(0, 0, 90, 40);
-    self.leftBtn.font = [UIFont fontWithName:_pickerFontFamily size:[_pickerToolBarFontSize integerValue]];
-    self.leftBtn.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
-    [self.leftBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 10.0, 0, 0)];
     [self.leftBtn setTitle:self.leftStr forState:UIControlStateNormal];
+    self.leftBtn.titleLabel.font = [UIFont fontWithName:_pickerFontFamily size:[_pickerToolBarFontSize integerValue]];
     [self.leftBtn setTitleColor:[self colorWith:leftbtnbgColor] forState:UIControlStateNormal];
     [self.leftBtn addTarget:self action:@selector(cancleAction) forControlEvents:UIControlEventTouchUpInside];
-    [view addSubview:self.leftBtn];
+    self.leftBtn.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
+    self.leftBtn.translatesAutoresizingMaskIntoConstraints = NO;
+    
+    // 移除titleEdgeInsets，改用约束来控制内边距
+    // [self.leftBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 10.0, 0, 0)];
+    // 设置左按钮的内容压缩阻力优先级，防止文字被截断
+    [self.leftBtn setContentCompressionResistancePriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
+    [self.leftBtn setContentHuggingPriority:UILayoutPriorityDefaultHigh forAxis:UILayoutConstraintAxisHorizontal];
     
     self.rightBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.rightBtn.frame = CGRectMake(view.frame.size.width-90,0, 90, 40);
-    self.rightBtn.font = [UIFont fontWithName:_pickerFontFamily size:[_pickerToolBarFontSize integerValue]];
+    self.rightBtn.titleLabel.font = [UIFont fontWithName:_pickerFontFamily size:[_pickerToolBarFontSize integerValue]];
     self.rightBtn.contentHorizontalAlignment=UIControlContentHorizontalAlignmentRight;
-    [self.rightBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 10.0)];
+    self.rightBtn.translatesAutoresizingMaskIntoConstraints = NO;
+    // 移除titleEdgeInsets，改用约束来控制内边距
+    // [self.rightBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 10.0)];
     [self.rightBtn setTitle:self.rightStr forState:UIControlStateNormal];
     [self.rightBtn setTitleColor:[self colorWith:rightbtnbgColor] forState:UIControlStateNormal];
-    [self.rightBtn addTarget:self action:@selector(cfirmAction) forControlEvents:UIControlEventTouchUpInside];  
-    [view addSubview:self.rightBtn];
+    [self.rightBtn addTarget:self action:@selector(cfirmAction) forControlEvents:UIControlEventTouchUpInside];
+    // 设置右按钮的内容压缩阻力优先级，防止文字被截断
+    [self.rightBtn setContentCompressionResistancePriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
+    [self.rightBtn setContentHuggingPriority:UILayoutPriorityDefaultHigh forAxis:UILayoutConstraintAxisHorizontal];
     
-    UILabel *cenLabel=[[UILabel alloc]initWithFrame:CGRectMake(90, 5, pickerFrame.size.width-180, 30)];
+    UILabel *cenLabel=[[UILabel alloc]init];
     cenLabel.text=self.centStr;
     cenLabel.textAlignment=NSTextAlignmentCenter;
     cenLabel.font = [UIFont fontWithName:_pickerFontFamily size:[_pickerToolBarFontSize integerValue]];
     [cenLabel setTextColor:[self colorWith:centerbtnColor]];
-    [view addSubview:cenLabel];
+    cenLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    // 设置中间标签的内容压缩阻力优先级较低，允许被压缩
+    [cenLabel setContentCompressionResistancePriority:UILayoutPriorityDefaultLow forAxis:UILayoutConstraintAxisHorizontal];
+    [cenLabel setContentHuggingPriority:UILayoutPriorityDefaultLow forAxis:UILayoutConstraintAxisHorizontal];
 
     self.pick = [[UIPickerView alloc] initWithFrame:CGRectMake(0, 40, pickerFrame.size.width, pickerFrame.size.height - 40)];
     self.pick.delegate = self;
     self.pick.dataSource = self;
     self.pick.showsSelectionIndicator=YES;
     [self.pickerContainer addSubview:self.pick];
+    // 不使用UIStackView，直接手动布局按钮和标签
+    [view addSubview:self.leftBtn];
+    [view addSubview:cenLabel];
+    [view addSubview:self.rightBtn];
     
+    // 手动计算按钮需要的实际宽度（包括titleEdgeInsets）
+    CGSize leftBtnSize = [self.leftStr sizeWithAttributes:@{NSFontAttributeName: self.leftBtn.titleLabel.font}];
+    CGSize rightBtnSize = [self.rightStr sizeWithAttributes:@{NSFontAttributeName: self.rightBtn.titleLabel.font}];
+    
+    // 现在不需要额外的边距计算，直接使用文字尺寸
+    CGFloat leftBtnWidth = leftBtnSize.width + 20.0; // 文字宽度 + 基本内边距
+    CGFloat rightBtnWidth = rightBtnSize.width + 20.0; // 文字宽度 + 基本内边距
+    
+    // 设置左按钮约束 - 左侧留出10px内边距
+    [NSLayoutConstraint activateConstraints:@[
+        [self.leftBtn.leadingAnchor constraintEqualToAnchor:view.leadingAnchor constant:10],
+        [self.leftBtn.centerYAnchor constraintEqualToAnchor:view.centerYAnchor],
+        [self.leftBtn.widthAnchor constraintEqualToConstant:MAX(leftBtnWidth, 60)] // 使用计算宽度，最小60px
+    ]];
+    
+    // 设置右按钮约束 - 右侧留出10px内边距
+    [NSLayoutConstraint activateConstraints:@[
+        [self.rightBtn.trailingAnchor constraintEqualToAnchor:view.trailingAnchor constant:-10],
+        [self.rightBtn.centerYAnchor constraintEqualToAnchor:view.centerYAnchor],
+        [self.rightBtn.widthAnchor constraintEqualToConstant:MAX(rightBtnWidth, 60)] // 使用计算宽度，最小60px
+    ]];
+    
+    // 设置中间标签约束 - 填充剩余空间
+    [NSLayoutConstraint activateConstraints:@[
+        [cenLabel.leadingAnchor constraintEqualToAnchor:self.leftBtn.trailingAnchor constant:8],
+        [cenLabel.trailingAnchor constraintEqualToAnchor:self.rightBtn.leadingAnchor constant:-8],
+        [cenLabel.centerYAnchor constraintEqualToAnchor:view.centerYAnchor]
+    ]];
     self.pick.backgroundColor=[self colorWith:bottombgColor];
 }
 //返回显示的列数
