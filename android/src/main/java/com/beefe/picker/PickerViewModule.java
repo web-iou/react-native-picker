@@ -17,6 +17,8 @@ import android.os.Build;
 import android.util.Log;
 import android.widget.LinearLayout;
 import android.widget.FrameLayout;
+import android.view.KeyEvent;
+import android.content.DialogInterface;
 
 import com.beefe.picker.util.MIUIUtils;
 import com.beefe.picker.view.OnSelectedListener;
@@ -484,6 +486,34 @@ public class PickerViewModule extends ReactContextBaseJavaModule implements Life
                 
                 dialog = new Dialog(activity, R.style.Dialog_Full_Screen);
                 dialog.setContentView(modalContainer);
+                
+                // 添加返回键监听，支持手势回退
+                dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+                    @Override
+                    public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                        if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP) {
+                            // 获取当前选中的数据
+                            switch (curStatus) {
+                                case 0:
+                                    returnData = pickerViewAlone.getSelectedData();
+                                    break;
+                                case 1:
+                                    returnData = pickerViewLinkage.getSelectedData();
+                                    break;
+                                case -1:
+                                    returnData = new ArrayList<>();
+                                    break;
+                            }
+                            // 触发取消事件
+                            commonEvent(EVENT_KEY_CANCEL);
+                            // 关闭picker
+                            hide();
+                            return true;
+                        }
+                        return false;
+                    }
+                });
+                
                 WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
                 Window window = dialog.getWindow();
                 if (window != null) {
@@ -502,8 +532,8 @@ public class PickerViewModule extends ReactContextBaseJavaModule implements Life
                     }
                     
                     // 设置基本flags，确保全屏和透明
-                    int baseFlags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                            | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                    // 注意：移除FLAG_NOT_FOCUSABLE以支持返回键监听
+                    int baseFlags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                             | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
                     
                     // 设置状态栏透明相关flags
@@ -541,8 +571,8 @@ public class PickerViewModule extends ReactContextBaseJavaModule implements Life
                 Window window = dialog.getWindow();
                 if (window != null) {
                     // 设置基本flags，确保全屏和透明
-                    int baseFlags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                            | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                    // 注意：移除FLAG_NOT_FOCUSABLE以支持返回键监听
+                    int baseFlags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                             | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
                     
                     // 设置状态栏透明相关flags
@@ -786,6 +816,34 @@ public class PickerViewModule extends ReactContextBaseJavaModule implements Life
             
             dialog = new Dialog(activity, R.style.Dialog_Full_Screen);
             dialog.setContentView(modalContainer);
+            
+            // 添加返回键监听，支持手势回退
+            dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+                @Override
+                public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                    if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP) {
+                        // 获取当前选中的数据
+                        switch (curStatus) {
+                            case 0:
+                                returnData = pickerViewAlone.getSelectedData();
+                                break;
+                            case 1:
+                                returnData = pickerViewLinkage.getSelectedData();
+                                break;
+                            case -1:
+                                returnData = new ArrayList<>();
+                                break;
+                        }
+                        // 触发取消事件
+                        commonEvent(EVENT_KEY_CANCEL);
+                        // 关闭picker
+                        hide();
+                        return true;
+                    }
+                    return false;
+                }
+            });
+            
             WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
             Window window = dialog.getWindow();
             if (window != null) {
@@ -802,8 +860,8 @@ public class PickerViewModule extends ReactContextBaseJavaModule implements Life
                 }
                 
                 // 设置基本flags，确保全屏和透明
-                int baseFlags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                        | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                // 注意：移除FLAG_NOT_FOCUSABLE以支持返回键监听
+                int baseFlags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                         | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
                 
                 // 设置状态栏透明相关flags
@@ -841,8 +899,8 @@ public class PickerViewModule extends ReactContextBaseJavaModule implements Life
             Window window = dialog.getWindow();
             if (window != null) {
                 // 设置基本flags，确保全屏和透明
-                int baseFlags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                        | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                // 注意：移除FLAG_NOT_FOCUSABLE以支持返回键监听
+                int baseFlags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                         | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
                 
                 // 设置状态栏透明相关flags
@@ -890,8 +948,8 @@ public class PickerViewModule extends ReactContextBaseJavaModule implements Life
             Window window = dialog.getWindow();
             if (window != null) {
                 // 设置基本flags，确保全屏和透明
-                int baseFlags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                        | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                // 注意：移除FLAG_NOT_FOCUSABLE以支持返回键监听
+                int baseFlags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                         | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
                 
                 // 设置状态栏透明相关flags
@@ -1084,8 +1142,8 @@ public class PickerViewModule extends ReactContextBaseJavaModule implements Life
         if (window == null) return;
         
         // 设置基本flags，确保全屏和透明
-        int baseFlags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+        // 注意：移除FLAG_NOT_FOCUSABLE以支持返回键监听
+        int baseFlags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                 | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
         
         // 设置状态栏透明相关flags
